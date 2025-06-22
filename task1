@@ -11,11 +11,13 @@ from sklearn.model_selection import train_test_split
 import warnings
 warnings.filterwarnings("ignore")
 
-def load_data():
-    return pd.read_csv('Titanic-Dataset.csv')
+# Set a random seed for reproducibility
+RANDOM_SEED = 42
+
+def load_data(filepath='/content/Titanic-Dataset.csv'):
+    return pd.read_csv(filepath)
 
 df = load_data()
-df.head()
 
 def get_summary(df):
     return {
@@ -27,8 +29,6 @@ def get_summary(df):
     }
 
 summary = get_summary(df)
-
-summary
 
 def preprocess_data(df):
     df = df.copy()
@@ -48,14 +48,14 @@ def preprocess_data(df):
     return X, y, scaler
 
 X, y, scaler = preprocess_data(df)
-X.head()
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Train-test split with random seed for reproducibility
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
 
-def train_and_save_model(X, y):
-    model = LogisticRegression()
+def train_and_save_model(X, y, filename="model.pkl"):
+    model = LogisticRegression(random_state=RANDOM_SEED)
     model.fit(X, y)
-    with open("model.pkl", "wb") as f:
+    with open(filename, "wb") as f:
         pickle.dump(model, f)
     return model
 
@@ -74,34 +74,44 @@ print("Accuracy:", acc)
 print("\nConfusion Matrix:\n", cm)
 print("\nClassification Report:\n", report)
 
-df['Survived'].value_counts().plot(kind='bar')
+# Improved visualizations with titles and axis labels
+df['Survived'].value_counts().plot(kind='bar', color=['salmon', 'lightblue'], edgecolor='black')
 plt.xticks([0, 1], ['Did Not Survive', 'Survived'])
 plt.title("Survival Count")
+plt.ylabel("Count")
+plt.xlabel("Survival Status")
 plt.show()
 
-df['Age'].hist(bins=30, edgecolor='black')
+df['Age'].hist(bins=30, edgecolor='black', color='skyblue')
 plt.xlabel("Age")
 plt.ylabel("Count")
 plt.title("Age Distribution")
 plt.show()
 
-df['Fare'].hist(bins=40, edgecolor='black')
+df['Fare'].hist(bins=40, edgecolor='black', color='lightgreen')
 plt.xlabel("Fare")
 plt.ylabel("Count")
 plt.title("Fare Distribution")
 plt.show()
 
-pd.crosstab(df['Sex'], df['Survived']).plot(kind='bar')
+pd.crosstab(df['Sex'], df['Survived']).plot(kind='bar', color=['salmon', 'lightblue'], edgecolor='black')
 plt.title("Survival by Sex")
+plt.ylabel("Count")
+plt.xlabel("Sex")
+plt.xticks([0, 1], ['Male', 'Female'])
 plt.show()
 
-pd.crosstab(df['Pclass'], df['Survived']).plot(kind='bar')
+pd.crosstab(df['Pclass'], df['Survived']).plot(kind='bar', color=['salmon', 'lightblue'], edgecolor='black')
 plt.title("Survival by Passenger Class")
+plt.ylabel("Count")
+plt.xlabel("Passenger Class")
 plt.show()
 
-df.boxplot(column='Age', by='Pclass')
-plt.title("Age vs Pclass")
+df.boxplot(column='Age', by='Pclass', grid=False, notch=True)
+plt.title("Age Distribution by Passenger Class")
 plt.suptitle("")
+plt.ylabel("Age")
+plt.xlabel("Passenger Class")
 plt.show()
 
 df_corr = df.copy()
@@ -109,11 +119,13 @@ df_corr['Sex'] = df_corr['Sex'].map({'male': 0, 'female': 1})
 df_corr['Embarked'] = df_corr['Embarked'].map({'S': 0, 'C': 1, 'Q': 2})
 df_corr.drop(['PassengerId', 'Name', 'Ticket', 'Cabin'], axis=1, inplace=True)
 corr = df_corr.corr()
-plt.figure(figsize=(10,6))
-sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f")
+plt.figure(figsize=(10, 6))
+sns.heatmap(corr, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
 plt.title("Correlation Heatmap")
 plt.show()
 
-pd.crosstab(df['Embarked'], df['Survived']).plot(kind='bar')
+pd.crosstab(df['Embarked'], df['Survived']).plot(kind='bar', color=['salmon', 'lightblue'], edgecolor='black')
 plt.title("Survival by Port of Embarkation")
+plt.ylabel("Count")
+plt.xlabel("Port of Embarkation")
 plt.show()
